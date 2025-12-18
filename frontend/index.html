@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geo-SQL Agent - AI-Powered Spatial Queries</title>
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            padding: 20px;
+            gap: 20px;
+        }
+
+        .header {
+            background: white;
+            padding: 20px 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .header h1 {
+            font-size: 28px;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .main-content {
+            display: flex;
+            gap: 20px;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .left-panel {
+            width: 40%;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .query-panel {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .query-panel h2 {
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .input-group {
+            position: relative;
+        }
+
+        #query-input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: all 0.3s;
+            resize: vertical;
+            min-height: 80px;
+            font-family: inherit;
+        }
+
+        #query-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .button-group {
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
+        }
+
+        button {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        #execute-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        #execute-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        #execute-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .clear-btn {
+            background: #f5f5f5;
+            color: #666;
+        }
+
+        .clear-btn:hover {
+            background: #e0e0e0;
+        }
+
+        .example-queries {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .example-queries h3 {
+            font-size: 16px;
+            margin-bottom: 12px;
+            color: #333;
+        }
+
+        .example-item {
+            padding: 10px;
+            margin-bottom: 8px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 13px;
+            color: #555;
+        }
+
+        .example-item:hover {
+            background: #e9ecef;
+            transform: translateX(5px);
+        }
+
+        .sql-panel {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            flex: 1;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sql-panel h3 {
+            font-size: 16px;
+            margin-bottom: 12px;
+            color: #333;
+        }
+
+        #sql-output {
+            flex: 1;
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .map-panel {
+            flex: 1;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            overflow: hidden;
+            position: relative;
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+        }
+
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255,255,255,0.95);
+            padding: 20px 40px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            z-index: 1000;
+            display: none;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .stats {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 999;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .stats strong {
+            color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌍 Geo-SQL Agent</h1>
+            <p>Ask questions in natural language, get spatial SQL queries in real-time</p>
+        </div>
+
+        <div class="main-content">
+            <div class="left-panel">
+                <div class="query-panel">
+                    <h2>🔍 Ask Your Question</h2>
+                    <div class="input-group">
+                        <textarea
+                            id="query-input"
+                            placeholder="e.g., Find all cafes within 200 meters of the largest park..."
+                        ></textarea>
+                    </div>
+                    <div class="button-group">
+                        <button id="execute-btn">Execute Query</button>
+                        <button class="clear-btn" id="clear-btn">Clear</button>
+                    </div>
+                </div>
+
+                <div class="example-queries">
+                    <h3>💡 Example Queries</h3>
+                    <div class="example-item" data-query="Find all cafes within 200 meters of the largest park">
+                        Find all cafes within 200 meters of the largest park
+                    </div>
+                    <div class="example-item" data-query="Show all parks larger than 5000 square meters">
+                        Show all parks larger than 5000 square meters
+                    </div>
+                    <div class="example-item" data-query="Find cafes near main roads">
+                        Find cafes near main roads
+                    </div>
+                    <div class="example-item" data-query="What is the closest cafe to the smallest park?">
+                        What is the closest cafe to the smallest park?
+                    </div>
+                    <div class="example-item" data-query="Show all roads that intersect with parks">
+                        Show all roads that intersect with parks
+                    </div>
+                </div>
+
+                <div class="sql-panel">
+                    <h3>📝 Generated SQL</h3>
+                    <div id="sql-output">Execute a query to see the generated SQL...</div>
+                </div>
+            </div>
+
+            <div class="map-panel">
+                <div id="map"></div>
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <div>Processing query...</div>
+                </div>
+                <div class="stats" id="stats">
+                    <div><strong>Results:</strong> <span id="result-count">0</span></div>
+                    <div><strong>Execution Time:</strong> <span id="exec-time">0ms</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <script>
+        // Initialize map centered on Tel Aviv
+        const map = L.map('map').setView([32.0853, 34.7818], 13);
+
+        // Add tile layer
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors',
+            maxZoom: 19
+        }).addTo(map);
+
+        // Layer group for results
+        let resultsLayer = L.layerGroup().addTo(map);
+
+        // API base URL
+        const API_URL = 'http://localhost:8000';
+
+        // DOM elements
+        const queryInput = document.getElementById('query-input');
+        const executeBtn = document.getElementById('execute-btn');
+        const clearBtn = document.getElementById('clear-btn');
+        const sqlOutput = document.getElementById('sql-output');
+        const loading = document.getElementById('loading');
+        const resultCount = document.getElementById('result-count');
+        const execTime = document.getElementById('exec-time');
+
+        // Example queries
+        document.querySelectorAll('.example-item').forEach(item => {
+            item.addEventListener('click', () => {
+                queryInput.value = item.dataset.query;
+            });
+        });
+
+        // Clear button
+        clearBtn.addEventListener('click', () => {
+            queryInput.value = '';
+            sqlOutput.textContent = 'Execute a query to see the generated SQL...';
+            resultsLayer.clearLayers();
+            resultCount.textContent = '0';
+            execTime.textContent = '0ms';
+        });
+
+        // Execute query
+        executeBtn.addEventListener('click', async () => {
+            const question = queryInput.value.trim();
+            if (!question) {
+                alert('Please enter a question');
+                return;
+            }
+
+            executeBtn.disabled = true;
+            loading.classList.add('active');
+            resultsLayer.clearLayers();
+
+            try {
+                const response = await fetch(`${API_URL}/query`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ question })
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Query failed');
+                }
+
+                const data = await response.json();
+
+                // Display SQL
+                sqlOutput.textContent = data.sql;
+
+                // Display results on map
+                if (data.results && data.results.length > 0) {
+                    data.results.forEach(result => {
+                        if (result.geojson) {
+                            const geojson = typeof result.geojson === 'string'
+                                ? JSON.parse(result.geojson)
+                                : result.geojson;
+
+                            const layer = L.geoJSON(geojson, {
+                                pointToLayer: (feature, latlng) => {
+                                    return L.circleMarker(latlng, {
+                                        radius: 8,
+                                        fillColor: "#667eea",
+                                        color: "#fff",
+                                        weight: 2,
+                                        opacity: 1,
+                                        fillOpacity: 0.8
+                                    });
+                                },
+                                style: (feature) => {
+                                    return {
+                                        color: "#667eea",
+                                        weight: 3,
+                                        opacity: 0.7,
+                                        fillOpacity: 0.3
+                                    };
+                                }
+                            });
+
+                            // Add popup
+                            const popupContent = Object.entries(result)
+                                .filter(([key]) => key !== 'geojson')
+                                .map(([key, value]) => `<strong>${key}:</strong> ${value}`)
+                                .join('<br>');
+                            layer.bindPopup(popupContent);
+
+                            layer.addTo(resultsLayer);
+                        }
+                    });
+
+                    // Fit map to results
+                    if (resultsLayer.getLayers().length > 0) {
+                        map.fitBounds(resultsLayer.getBounds(), { padding: [50, 50] });
+                    }
+                }
+
+                // Update stats
+                resultCount.textContent = data.results.length;
+                execTime.textContent = `${(data.execution_time * 1000).toFixed(0)}ms`;
+
+            } catch (error) {
+                alert(`Error: ${error.message}`);
+                sqlOutput.textContent = `Error: ${error.message}`;
+            } finally {
+                executeBtn.disabled = false;
+                loading.classList.remove('active');
+            }
+        });
+
+        // Allow Enter key to execute (Ctrl+Enter for multiline)
+        queryInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && e.ctrlKey) {
+                executeBtn.click();
+            }
+        });
+    </script>
+</body>
+</html>

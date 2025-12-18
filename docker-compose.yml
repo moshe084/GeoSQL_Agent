@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  postgis:
+    image: postgis/postgis:15-3.3
+    container_name: geo-sql-postgis
+    environment:
+      POSTGRES_DB: geospatial
+      POSTGRES_USER: geouser
+      POSTGRES_PASSWORD: geopass
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgis_data:/var/lib/postgresql/data
+      - ./init-data:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U geouser -d geospatial"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: ./backend
+    container_name: geo-sql-backend
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql://geouser:geopass@postgis:5432/geospatial
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+    depends_on:
+      postgis:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+
+  frontend:
+    image: nginx:alpine
+    container_name: geo-sql-frontend
+    ports:
+      - "3000:80"
+    volumes:
+      - ./frontend:/usr/share/nginx/html
+    depends_on:
+      - backend
+
+volumes:
+  postgis_data:
