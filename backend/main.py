@@ -6,6 +6,14 @@ import os
 from sqlalchemy import create_engine, text
 from openai import OpenAI
 import json
+import logging
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
 app = FastAPI(title="Geo-SQL Agent")
 
@@ -145,9 +153,19 @@ async def execute_query(request: QueryRequest):
     """Execute natural language query"""
     import time
 
+    logger.info("="*80)
+    logger.info("🔵 NEW QUERY REQUEST")
+    logger.info(f"📝 Question: {request.question}")
+    logger.info("="*80)
+
     try:
         # Step 1: Generate SQL using OpenAI
         start_time = time.time()
+
+        logger.info("🤖 STEP 1: Sending question to OpenAI GPT-4...")
+        logger.info(f"   Model: gpt-4")
+        logger.info(f"   Temperature: 0")
+        logger.info(f"   Max Tokens: 500")
 
         response = client.chat.completions.create(
             model="gpt-4",
@@ -160,18 +178,30 @@ async def execute_query(request: QueryRequest):
         )
 
         sql_query = response.choices[0].message.content.strip()
+        logger.info("✅ Received response from OpenAI")
+        logger.info(f"📄 Raw SQL Response:\n{sql_query}")
 
         # Remove markdown code blocks if present
         if sql_query.startswith("```sql"):
+            logger.info("🔧 Cleaning SQL: Removing ```sql markdown blocks")
             sql_query = sql_query.replace("```sql", "").replace("```", "").strip()
         elif sql_query.startswith("```"):
+            logger.info("🔧 Cleaning SQL: Removing ``` markdown blocks")
             sql_query = sql_query.replace("```", "").strip()
 
+        logger.info(f"✨ Final SQL Query:\n{sql_query}")
+
         # Step 2: Execute SQL query
+        logger.info("🗄️  STEP 2: Executing SQL query on PostGIS database...")
+
         with engine.connect() as conn:
             result = conn.execute(text(sql_query))
             columns = result.keys()
             rows = result.fetchall()
+
+            logger.info(f"✅ Query executed successfully")
+            logger.info(f"📊 Columns: {list(columns)}")
+            logger.info(f"📈 Rows returned: {len(rows)}")
 
             # Convert to list of dicts
             results = []
@@ -183,12 +213,19 @@ async def execute_query(request: QueryRequest):
                     if col == 'geojson' and isinstance(value, str):
                         try:
                             value = json.loads(value)
+                            logger.info(f"   🗺️  Parsed GeoJSON for row {len(results) + 1}")
                         except:
                             pass
                     row_dict[col] = value
                 results.append(row_dict)
 
         execution_time = time.time() - start_time
+
+        logger.info("="*80)
+        logger.info("🟢 QUERY COMPLETED SUCCESSFULLY")
+        logger.info(f"⏱️  Total Execution Time: {execution_time:.3f}s")
+        logger.info(f"📊 Total Results: {len(results)}")
+        logger.info("="*80)
 
         return QueryResponse(
             sql=sql_query,
@@ -197,6 +234,11 @@ async def execute_query(request: QueryRequest):
         )
 
     except Exception as e:
+        logger.error("="*80)
+        logger.error("🔴 QUERY FAILED")
+        logger.error(f"❌ Error Type: {type(e).__name__}")
+        logger.error(f"❌ Error Message: {str(e)}")
+        logger.error("="*80)
         raise HTTPException(status_code=500, detail=f"Query execution failed: {str(e)}")
 
 

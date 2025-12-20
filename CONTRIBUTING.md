@@ -86,7 +86,7 @@ uvicorn main:app --reload
 cd frontend
 
 # Serve locally
-python -m http.server 3000
+python -m http.server 3010
 # Or use Live Server extension in VS Code
 ```
 
@@ -100,7 +100,7 @@ docker-compose up postgis
 
 **Manual Testing:**
 1. Start all services: `./run.sh`
-2. Open http://localhost:3000
+2. Open http://localhost:3010
 3. Try queries from `QUERIES.md`
 4. Check logs: `docker-compose logs -f`
 
@@ -260,7 +260,7 @@ select c.id,c.name,ST_AsGeoJSON(c.geom) as geojson from cafes c where c.name lik
 Before submitting a PR, verify:
 
 - [ ] All services start: `./run.sh`
-- [ ] Frontend loads at http://localhost:3000
+- [ ] Frontend loads at http://localhost:3010
 - [ ] API docs accessible at http://localhost:8000/docs
 - [ ] Health check passes: `curl http://localhost:8000/health`
 - [ ] Basic query works: "Show me all cafes"

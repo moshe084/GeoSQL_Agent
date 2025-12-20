@@ -9,7 +9,7 @@ services:
       POSTGRES_USER: geouser
       POSTGRES_PASSWORD: geopass
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - postgis_data:/var/lib/postgresql/data
       - ./init-data:/docker-entrypoint-initdb.d
@@ -38,7 +38,7 @@ services:
     image: nginx:alpine
     container_name: geo-sql-frontend
     ports:
-      - "3000:80"
+      - "3010:80"
     volumes:
       - ./frontend:/usr/share/nginx/html
     depends_on:

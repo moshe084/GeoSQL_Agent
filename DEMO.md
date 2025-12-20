@@ -11,7 +11,7 @@ Show developers that AI can solve the "PostGIS syntax nightmare" in real-time.
 ### 🎥 Video Setup (Split Screen)
 
 #### Left Side: Query Input
-- Your browser showing http://localhost:3000
+- Your browser showing http://localhost:3010
 - Focus on the query input box
 
 #### Right Side: Technical View

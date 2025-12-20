@@ -337,7 +337,7 @@
         }).addTo(map);
 
         // Layer group for results
-        let resultsLayer = L.layerGroup().addTo(map);
+        let resultsLayer = L.featureGroup().addTo(map);
 
         // API base URL
         const API_URL = 'http://localhost:8000';
@@ -375,11 +375,19 @@
                 return;
             }
 
+            console.log('═'.repeat(80));
+            console.log('🔵 FRONTEND: New Query Request');
+            console.log(`📝 Question: "${question}"`);
+            console.log('═'.repeat(80));
+
             executeBtn.disabled = true;
             loading.classList.add('active');
             resultsLayer.clearLayers();
 
             try {
+                console.log(`🌐 STEP 1: Sending POST request to ${API_URL}/query`);
+                console.log('📦 Request body:', { question });
+
                 const response = await fetch(`${API_URL}/query`, {
                     method: 'POST',
                     headers: {
@@ -388,23 +396,36 @@
                     body: JSON.stringify({ question })
                 });
 
+                console.log(`📡 Response status: ${response.status} ${response.statusText}`);
+
                 if (!response.ok) {
                     const error = await response.json();
+                    console.error('❌ Server returned error:', error);
                     throw new Error(error.detail || 'Query failed');
                 }
 
                 const data = await response.json();
+                console.log('✅ STEP 2: Received response from backend');
+                console.log('📄 Generated SQL:', data.sql);
+                console.log(`📊 Results count: ${data.results.length}`);
+                console.log(`⏱️  Execution time: ${data.execution_time.toFixed(3)}s`);
 
                 // Display SQL
                 sqlOutput.textContent = data.sql;
 
                 // Display results on map
                 if (data.results && data.results.length > 0) {
-                    data.results.forEach(result => {
+                    console.log('🗺️  STEP 3: Rendering results on map...');
+
+                    data.results.forEach((result, index) => {
                         if (result.geojson) {
+                            console.log(`   Adding feature ${index + 1}/${data.results.length} to map`);
+
                             const geojson = typeof result.geojson === 'string'
                                 ? JSON.parse(result.geojson)
                                 : result.geojson;
+
+                            console.log(`   Type: ${geojson.type}, Coordinates:`, geojson.coordinates);
 
                             const layer = L.geoJSON(geojson, {
                                 pointToLayer: (feature, latlng) => {
@@ -440,20 +461,37 @@
 
                     // Fit map to results
                     if (resultsLayer.getLayers().length > 0) {
-                        map.fitBounds(resultsLayer.getBounds(), { padding: [50, 50] });
+                        console.log('🎯 STEP 4: Fitting map bounds to results');
+                        const bounds = resultsLayer.getBounds();
+                        console.log('   Bounds:', bounds);
+                        map.fitBounds(bounds, { padding: [50, 50] });
                     }
+                } else {
+                    console.log('ℹ️  No results to display on map');
                 }
 
                 // Update stats
                 resultCount.textContent = data.results.length;
                 execTime.textContent = `${(data.execution_time * 1000).toFixed(0)}ms`;
 
+                console.log('═'.repeat(80));
+                console.log('🟢 FRONTEND: Query Completed Successfully');
+                console.log('═'.repeat(80));
+
             } catch (error) {
+                console.log('═'.repeat(80));
+                console.error('🔴 FRONTEND: Query Failed');
+                console.error('❌ Error:', error);
+                console.error('❌ Message:', error.message);
+                console.log('═'.repeat(80));
+
                 alert(`Error: ${error.message}`);
                 sqlOutput.textContent = `Error: ${error.message}`;
             } finally {
+                console.log('🔄 Cleaning up...');
                 executeBtn.disabled = false;
                 loading.classList.remove('active');
+                console.log('✅ UI reset complete');
             }
         });
 

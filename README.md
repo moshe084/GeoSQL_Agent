@@ -9,6 +9,24 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.104-green.svg)](https://fastapi.tiangolo.com/)
 [![PostGIS](https://img.shields.io/badge/PostGIS-3.3-blue.svg)](https://postgis.net/)
 
+---
+
+## 📚 Documentation
+
+**🚀 First time?** → Start here: **[START_HERE.md](START_HERE.md)** (עברית)
+
+| Document | Description | Language | Time |
+|----------|-------------|----------|------|
+| **[START_HERE.md](START_HERE.md)** | Just want it running? 4 steps | 🇮🇱 עברית | 5 min |
+| **[SIMPLE_GUIDE.md](SIMPLE_GUIDE.md)** | Quick start with examples | 🇬🇧 English | 10 min |
+| **[CHEAT_SHEET.md](CHEAT_SHEET.md)** | Quick reference card | 🇬🇧 English | 2 min |
+| **[USAGE_GUIDE.md](USAGE_GUIDE.md)** | Complete usage guide | 🇮🇱 עברית | 20 min |
+| **[WORKFLOW.md](WORKFLOW.md)** | Visual workflow diagram | 🇬🇧 English | 15 min |
+| **[ARCHITECTURE.md](ARCHITECTURE.md)** | Technical architecture | 🇬🇧 English | 30 min |
+| **[QUERIES.md](QUERIES.md)** | Example queries library | 🇬🇧 English | 10 min |
+
+---
+
 ## 🎯 The Problem
 
 GIS developers know that spatial SQL is a **nightmare** for those who don't master it. Complex queries involving `ST_DWithin`, `ST_Intersects`, geography casts, and spatial joins can take hours to debug.

@@ -48,7 +48,7 @@ docker-compose up --build
 ### Step 3: Test (2 min)
 
 **Open in browser:**
-- Frontend: http://localhost:3000
+- Frontend: http://localhost:3010
 - API Docs: http://localhost:8000/docs
 
 **Try your first query:**
@@ -165,7 +165,7 @@ cat .env | grep OPENAI_API_KEY
 **Solution:**
 ```bash
 # Change ports in docker-compose.yml
-# Default ports: 5432 (db), 8000 (api), 3000 (frontend)
+# Default ports: 5432 (db), 8000 (api), 3010 (frontend)
 
 # Or stop conflicting services:
 docker ps  # find conflicting container
@@ -261,7 +261,7 @@ When you execute a query, you'll see:
 ### Screen Recording Setup:
 
 1. **Split screen view:**
-   - Left: Browser with app (http://localhost:3000)
+   - Left: Browser with app (http://localhost:3010)
    - Right: Terminal with logs (`docker-compose logs -f backend`)
 
 2. **What to show:**
