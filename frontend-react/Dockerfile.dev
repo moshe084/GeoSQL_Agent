@@ -1,0 +1,25 @@
+# ==============================================================================
+# Dockerfile for React Frontend (Development)
+# ==============================================================================
+
+FROM node:18-alpine
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install all dependencies (including devDependencies)
+RUN npm install
+
+# Copy application source
+# Note: In docker-compose, we mount the source directory as a volume
+# for hot reload, so this COPY is mainly for standalone builds
+COPY . .
+
+# Expose development server port
+EXPOSE 3000
+
+# Start development server
+CMD ["npm", "start"]

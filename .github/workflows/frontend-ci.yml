@@ -1,0 +1,115 @@
+name: Frontend CI
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'frontend-react/**'
+      - '.github/workflows/frontend-ci.yml'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'frontend-react/**'
+      - '.github/workflows/frontend-ci.yml'
+
+jobs:
+  test:
+    name: Test Frontend
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: ['18.x', '20.x']
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+          cache-dependency-path: frontend-react/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./frontend-react
+        run: npm ci
+
+      - name: Lint with ESLint
+        working-directory: ./frontend-react
+        run: npm run lint
+
+      - name: Type check
+        working-directory: ./frontend-react
+        run: npm run type-check
+
+      - name: Run tests
+        working-directory: ./frontend-react
+        run: npm test -- --coverage --watchAll=false
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./frontend-react/coverage/coverage-final.json
+          flags: frontend
+          name: frontend-coverage
+
+  build:
+    name: Build Frontend
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+          cache-dependency-path: frontend-react/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./frontend-react
+        run: npm ci
+
+      - name: Build production bundle
+        working-directory: ./frontend-react
+        env:
+          CI: false  # Treat warnings as warnings, not errors
+        run: npm run build
+
+      - name: Check build size
+        working-directory: ./frontend-react
+        run: |
+          du -sh build
+          echo "Build size:"
+          du -h build | sort -hr | head -10
+
+  lint:
+    name: Lint & Format
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+          cache-dependency-path: frontend-react/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./frontend-react
+        run: npm ci
+
+      - name: Check code formatting
+        working-directory: ./frontend-react
+        run: npx prettier --check "src/**/*.{ts,tsx,css}"
+
+      - name: Lint TypeScript
+        working-directory: ./frontend-react
+        run: npm run lint

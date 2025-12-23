@@ -1,48 +1,193 @@
-version: '3.8'
+# ==============================================================================
+# Docker Compose Configuration for Geo-SQL Agent
+# ==============================================================================
+# Production-ready configuration with health checks and resource limits
+# ==============================================================================
 
 services:
+  # ----------------------------------------------------------------------------
+  # PostGIS Database Service
+  # ----------------------------------------------------------------------------
   postgis:
     image: postgis/postgis:15-3.3
     container_name: geo-sql-postgis
+    restart: unless-stopped
+
     environment:
       POSTGRES_DB: geospatial
       POSTGRES_USER: geouser
       POSTGRES_PASSWORD: geopass
+      # Performance tuning
+      POSTGRES_SHARED_BUFFERS: 256MB
+      POSTGRES_EFFECTIVE_CACHE_SIZE: 1GB
+
     ports:
       - "5433:5432"
+
     volumes:
       - postgis_data:/var/lib/postgresql/data
-      - ./init-data:/docker-entrypoint-initdb.d
+      - ./init-data:/docker-entrypoint-initdb.d:ro
+
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U geouser -d geospatial"]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 30s
 
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+    networks:
+      - geosql-network
+
+  # ----------------------------------------------------------------------------
+  # FastAPI Backend Service
+  # ----------------------------------------------------------------------------
   backend:
-    build: ./backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
     container_name: geo-sql-backend
+    restart: unless-stopped
+
     ports:
       - "8000:8000"
+
     environment:
+      # Application
+      APP_NAME: Geo-SQL Agent
+      ENVIRONMENT: ${ENVIRONMENT:-production}
+      DEBUG: ${DEBUG:-false}
+
+      # Database
       DATABASE_URL: postgresql://geouser:geopass@postgis:5432/geospatial
+      DB_POOL_SIZE: ${DB_POOL_SIZE:-5}
+      DB_MAX_OVERFLOW: ${DB_MAX_OVERFLOW:-10}
+
+      # OpenAI
       OPENAI_API_KEY: ${OPENAI_API_KEY}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4}
+
+      # CORS - using defaults from config.py (List format required by Pydantic)
+      # CORS_ORIGINS uses default: ["http://localhost:3010", "http://localhost:3000"]
+
+      # Rate Limiting
+      RATE_LIMIT_ENABLED: ${RATE_LIMIT_ENABLED:-true}
+      RATE_LIMIT_REQUESTS: ${RATE_LIMIT_REQUESTS:-10}
+      RATE_LIMIT_PERIOD: ${RATE_LIMIT_PERIOD:-60}
+
     depends_on:
       postgis:
         condition: service_healthy
-    volumes:
-      - ./backend:/app
-    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 
-  frontend:
-    image: nginx:alpine
-    container_name: geo-sql-frontend
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+    networks:
+      - geosql-network
+
+  # ----------------------------------------------------------------------------
+  # React Frontend Service (Development)
+  # ----------------------------------------------------------------------------
+  frontend-dev:
+    build:
+      context: ./frontend-react
+      dockerfile: Dockerfile.dev
+    container_name: geo-sql-frontend-dev
+    restart: unless-stopped
+
+    ports:
+      - "3000:3000"
+
+    environment:
+      - REACT_APP_API_URL=http://localhost:8000
+      - CHOKIDAR_USEPOLLING=true  # For hot reload in Docker
+
+    volumes:
+      - ./frontend-react:/app
+      - /app/node_modules
+
+    depends_on:
+      backend:
+        condition: service_healthy
+
+    networks:
+      - geosql-network
+
+    profiles:
+      - development
+
+  # ----------------------------------------------------------------------------
+  # React Frontend Service (Production)
+  # ----------------------------------------------------------------------------
+  frontend-prod:
+    build:
+      context: ./frontend-react
+      dockerfile: Dockerfile.prod
+    container_name: geo-sql-frontend-prod
+    restart: unless-stopped
+
     ports:
       - "3010:80"
-    volumes:
-      - ./frontend:/usr/share/nginx/html
-    depends_on:
-      - backend
 
+    depends_on:
+      backend:
+        condition: service_healthy
+
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 128M
+        reservations:
+          cpus: '0.1'
+          memory: 64M
+
+    networks:
+      - geosql-network
+
+    profiles:
+      - production
+
+# ==============================================================================
+# Networks
+# ==============================================================================
+networks:
+  geosql-network:
+    driver: bridge
+    name: geosql-network
+
+# ==============================================================================
+# Volumes
+# ==============================================================================
 volumes:
   postgis_data:
+    name: geosql_postgis_data
