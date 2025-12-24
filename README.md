@@ -13,10 +13,10 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.3-3178C6.svg)](https://www.typescriptlang.org/)
 [![PostGIS](https://img.shields.io/badge/PostGIS-3.3-blue.svg)](https://postgis.net/)
 
-[![Backend CI](https://github.com/YOUR_USERNAME/geo-sql-agent/actions/workflows/backend-ci.yml/badge.svg)](https://github.com/YOUR_USERNAME/geo-sql-agent/actions/workflows/backend-ci.yml)
-[![Frontend CI](https://github.com/YOUR_USERNAME/geo-sql-agent/actions/workflows/frontend-ci.yml/badge.svg)](https://github.com/YOUR_USERNAME/geo-sql-agent/actions/workflows/frontend-ci.yml)
-[![Docker Build](https://github.com/YOUR_USERNAME/geo-sql-agent/actions/workflows/docker-build.yml/badge.svg)](https://github.com/YOUR_USERNAME/geo-sql-agent/actions/workflows/docker-build.yml)
-[![codecov](https://codecov.io/gh/YOUR_USERNAME/geo-sql-agent/branch/main/graph/badge.svg)](https://codecov.io/gh/YOUR_USERNAME/geo-sql-agent)
+[![Backend CI](https://github.com/moshe084/geo-sql-agent/actions/workflows/backend-ci.yml/badge.svg)](https://github.com/moshe084/geo-sql-agent/actions/workflows/backend-ci.yml)
+[![Frontend CI](https://github.com/moshe084/geo-sql-agent/actions/workflows/frontend-ci.yml/badge.svg)](https://github.com/moshe084/geo-sql-agent/actions/workflows/frontend-ci.yml)
+[![Docker Build](https://github.com/moshe084/geo-sql-agent/actions/workflows/docker-build.yml/badge.svg)](https://github.com/moshe084/geo-sql-agent/actions/workflows/docker-build.yml)
+[![codecov](https://codecov.io/gh/moshe084/geo-sql-agent/branch/main/graph/badge.svg)](https://codecov.io/gh/moshe084/geo-sql-agent)
 
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
@@ -123,7 +123,7 @@ An AI agent that:
 
 #### 1. Clone & Setup
 ```bash
-git clone https://github.com/YOUR_USERNAME/geo-sql-agent.git
+git clone https://github.com/moshe084/geo-sql-agent.git
 cd geo-sql-agent
 cp .env.example .env
 ```
@@ -311,8 +311,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🙋‍♂️ Support
 
-- **Issues**: [GitHub Issues](https://github.com/YOUR_USERNAME/geo-sql-agent/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/YOUR_USERNAME/geo-sql-agent/discussions)
+- **Issues**: [GitHub Issues](https://github.com/moshe084/geo-sql-agent/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/moshe084/geo-sql-agent/discussions)
 - **Email**: your-email@example.com
 
 ---
@@ -320,9 +320,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 📈 Project Stats
 
 <!-- GitHub stats will be auto-generated -->
-![GitHub stars](https://img.shields.io/github/stars/YOUR_USERNAME/geo-sql-agent?style=social)
-![GitHub forks](https://img.shields.io/github/forks/YOUR_USERNAME/geo-sql-agent?style=social)
-![GitHub watchers](https://img.shields.io/github/watchers/YOUR_USERNAME/geo-sql-agent?style=social)
+![GitHub stars](https://img.shields.io/github/stars/moshe084/geo-sql-agent?style=social)
+![GitHub forks](https://img.shields.io/github/forks/moshe084/geo-sql-agent?style=social)
+![GitHub watchers](https://img.shields.io/github/watchers/moshe084/geo-sql-agent?style=social)
 
 ---
 
