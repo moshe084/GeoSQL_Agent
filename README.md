@@ -361,7 +361,7 @@ Perfect for:
 Built by [Your Name]
 
 - LinkedIn: [Your Profile](https://linkedin.com/in/yourprofile)
-- GitHub: [@YourUsername](https://github.com/YourUsername)
+- GitHub: [@YourUsername](https://github.com/moshe084)
 - Email: your-email@example.com
 
 ---
